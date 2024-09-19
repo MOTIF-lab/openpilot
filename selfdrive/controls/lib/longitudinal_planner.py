@@ -104,7 +104,7 @@ class LongitudinalPlanner:
 
     #66 Get the advisory speed from the SubMaster
     advisory_speed = sm['customReserved1'].advisorySpeed
-    advisory_speed_ms = advisory_speed * CV.KPH_TO_MS  # Convert advisory speed from km/h to m/s
+    advisory_speed_ms = advisory_speed * CV.MPH_TO_MS  # Convert advisory speed from mph to m/s
 
     #66 Limit the cruise speed by the advisory speed
     v_cruise = min(v_cruise, advisory_speed_ms)
