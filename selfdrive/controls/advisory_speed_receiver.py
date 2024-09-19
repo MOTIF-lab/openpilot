@@ -19,11 +19,11 @@ def main():
             socket.send(b"ok")
             if message:
                 advisory_speed = float(message)  # Convert the string to float
-                print("send speed to " + advisory_speed)
+                print(f"send speed to f{advisory_speed}")
                 # Create and send the message using custom.AdvisorySpeed
                 dat = messaging.new_message('customReserved1')
                 dat.customReserved1.advisorySpeed = advisory_speed
-                pm.send('advisorySpeed', dat)
+                pm.send('customReserved1', dat)
 
         except Exception as e:
             print(f"Error: {e}")

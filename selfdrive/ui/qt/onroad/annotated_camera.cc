@@ -49,13 +49,13 @@ void AnnotatedCameraWidget::updateState(const UIState &s) {
 
   // set advisory speed
   float v_adv = custom_reserved_1_msg.getAdvisorySpeed();
-  printf("Advisory speed: %f\n", v_adv);
-  // if (advisorySpeed > 0 && is_metric) {
-  //   advisorySpeed *= MILE_TO_KM;
-  // }
-  // if(advisorySpeed < 0) {
-  //   advisorySpeed = 0;
-  // }
+  advisorySpeed = v_adv;
+  if (advisorySpeed > 0 && is_metric) {
+    advisorySpeed *= MILE_TO_KM;
+  }
+  if(advisorySpeed < 0) {
+    advisorySpeed = 0;
+  }
 
   speedUnit = is_metric ? tr("km/h") : tr("mph");
   status = s.status;
@@ -116,14 +116,14 @@ void AnnotatedCameraWidget::drawHud(QPainter &p) {
   if (is_metric) adv_speed_size.rwidth() = 200;
 
   QRect adv_speed_rect(QPoint(60 + (default_size.width() - adv_speed_size.width()) / 2, (45*2) + set_speed_size.height()), adv_speed_size);
-  p.setPen(QPen(whiteColor(75), 6));
-  p.setBrush(blackColor(166));
+  p.setPen(QPen(QColor(207,196,147,0xff), 6));
+  p.setBrush(whiteColor(100));
   p.drawRoundedRect(adv_speed_rect, 32, 32);
 
 
   // Draw advisory speed
-  QColor adv_color = QColor(0xa6, 0xa6, 0xa6, 0xff);
-  QColor adv_speed_color = QColor(0xa6, 0xa6, 0xa6, 0xff);
+  QColor adv_color = QColor(0, 103, 71, 0xff);
+  QColor adv_speed_color = QColor(0, 103, 71, 0xff);
   p.setFont(InterFont(40, QFont::DemiBold));
   p.setPen(adv_color);
   p.drawText(adv_speed_rect.adjusted(0, 27, 0, 0), Qt::AlignTop | Qt::AlignHCenter, tr("ADV"));
