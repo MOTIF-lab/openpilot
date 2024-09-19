@@ -20,7 +20,7 @@ def main():
   longitudinal_planner = LongitudinalPlanner(CP)
   pm = messaging.PubMaster(['longitudinalPlan', 'driverAssistance'])
   ### add advisorySpeed to sm in the planner
-  sm = messaging.SubMaster(['carControl', 'carState', 'controlsState', 'radarState', 'modelV2', 'selfdriveState', 'advisorySpeed'],
+  sm = messaging.SubMaster(['carControl', 'carState', 'controlsState', 'radarState', 'modelV2', 'selfdriveState', 'customReserved1'],
                            poll='modelV2', ignore_avg_freq=['radarState'])
 
   while True:

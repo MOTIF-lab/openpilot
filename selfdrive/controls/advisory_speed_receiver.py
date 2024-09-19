@@ -3,7 +3,7 @@ import socket
 import zmq
 
 def main():
-    pm = messaging.PubMaster(['advisorySpeed'])
+    pm = messaging.PubMaster(['customReserved1'])
 
     context = zmq.Context()
     socket = context.socket(zmq.REP)

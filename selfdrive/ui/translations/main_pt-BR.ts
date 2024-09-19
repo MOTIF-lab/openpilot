@@ -101,6 +101,10 @@
         <source>MAX</source>
         <translation>LIMITE</translation>
     </message>
+    <message>
+        <source>ADV</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>ConfirmationDialog</name>
