@@ -23,6 +23,7 @@ private:
   float speed;
   QString speedUnit;
   float setSpeed;
+  float advisorySpeed;
   bool is_cruise_set = false;
   bool is_metric = false;
   bool v_ego_cluster_seen = false;

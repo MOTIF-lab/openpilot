@@ -101,6 +101,10 @@
         <source>MAX</source>
         <translation>最高速度</translation>
     </message>
+    <message>
+        <source>ADV</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>ConfirmationDialog</name>

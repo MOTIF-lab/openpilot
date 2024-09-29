@@ -29,6 +29,7 @@ void AnnotatedCameraWidget::updateState(const UIState &s) {
   const bool cs_alive = sm.alive("carState");
   const auto cs = sm["controlsState"].getControlsState();
   const auto car_state = sm["carState"].getCarState();
+  const auto custom_reserved_1_msg = sm["customReserved1"].getCustomReserved1();
 
   is_metric = s.scene.is_metric;
 
@@ -45,6 +46,16 @@ void AnnotatedCameraWidget::updateState(const UIState &s) {
   float v_ego = v_ego_cluster_seen ? car_state.getVEgoCluster() : car_state.getVEgo();
   speed = cs_alive ? std::max<float>(0.0, v_ego) : 0.0;
   speed *= is_metric ? MS_TO_KPH : MS_TO_MPH;
+
+  // set advisory speed
+  float v_adv = custom_reserved_1_msg.getAdvisorySpeed();
+  advisorySpeed = v_adv;
+  if (advisorySpeed > 0 && is_metric) {
+    advisorySpeed *= MILE_TO_KM;
+  }
+  if(advisorySpeed < 0) {
+    advisorySpeed = 0;
+  }
 
   speedUnit = is_metric ? tr("km/h") : tr("mph");
   status = s.status;
@@ -67,6 +78,7 @@ void AnnotatedCameraWidget::drawHud(QPainter &p) {
 
   QString speedStr = QString::number(std::nearbyint(speed));
   QString setSpeedStr = is_cruise_set ? QString::number(std::nearbyint(setSpeed)) : "–";
+  QString advSpeedStr = QString::number(std::nearbyint(advisorySpeed));
 
   // Draw outer box + border to contain set speed
   const QSize default_size = {172, 204};
@@ -97,6 +109,28 @@ void AnnotatedCameraWidget::drawHud(QPainter &p) {
   p.setFont(InterFont(90, QFont::Bold));
   p.setPen(set_speed_color);
   p.drawText(set_speed_rect.adjusted(0, 77, 0, 0), Qt::AlignTop | Qt::AlignHCenter, setSpeedStr);
+
+
+  // Draw outer box + border to contain advisory speed
+  QSize adv_speed_size = default_size;
+  if (is_metric) adv_speed_size.rwidth() = 200;
+
+  QRect adv_speed_rect(QPoint(60 + (default_size.width() - adv_speed_size.width()) / 2, (45*2) + set_speed_size.height()), adv_speed_size);
+  p.setPen(QPen(QColor(207,196,147,0xff), 6));
+  p.setBrush(whiteColor(100));
+  p.drawRoundedRect(adv_speed_rect, 32, 32);
+
+
+  // Draw advisory speed
+  QColor adv_color = QColor(0, 103, 71, 0xff);
+  QColor adv_speed_color = QColor(0, 103, 71, 0xff);
+  p.setFont(InterFont(40, QFont::DemiBold));
+  p.setPen(adv_color);
+  p.drawText(adv_speed_rect.adjusted(0, 27, 0, 0), Qt::AlignTop | Qt::AlignHCenter, tr("ADV"));
+  p.setFont(InterFont(90, QFont::Bold));
+  p.setPen(adv_speed_color);
+  p.drawText(adv_speed_rect.adjusted(0, 77, 0, 0), Qt::AlignTop | Qt::AlignHCenter, advSpeedStr);
+
 
   // current speed
   p.setFont(InterFont(176, QFont::Bold));
