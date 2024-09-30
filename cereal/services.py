@@ -73,6 +73,13 @@ _services: dict[str, tuple] = {
   "userFlag": (True, 0., 1),
   "microphone": (True, 10., 10),
 
+  # Custom Messages
+
+  "customReserved0": (True, 0.),
+  "customReserved1": (True, 0.),
+  "customReserved2": (True, 0.),
+  "customReserved3": (True, 0.),
+
   # debug
   "uiDebug": (True, 0., 1),
   "testJoystick": (True, 0.),

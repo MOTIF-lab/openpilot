@@ -147,7 +147,11 @@ void AnnotatedCameraWidget::drawLaneLines(QPainter &painter, const UIState *s) {
   painter.restore();
 }
 
-void AnnotatedCameraWidget::drawLead(QPainter &painter, const cereal::RadarState::LeadData::Reader &lead_data, const QPointF &vd) {
+void AnnotatedCameraWidget::drawLead( QPainter &painter,
+                                      const cereal::RadarState::LeadData::Reader &lead_data,
+                                      const QPointF &vd,
+                                      const cereal::CustomReserved2::Reader &lead_comma_data
+                                    ) {
   painter.save();
 
   const float speedBuff = 10.;
@@ -179,6 +183,13 @@ void AnnotatedCameraWidget::drawLead(QPainter &painter, const cereal::RadarState
   QPointF chevron[] = {{x + (sz * 1.25), y + sz}, {x, y}, {x - (sz * 1.25), y + sz}};
   painter.setBrush(redColor(fillAlpha));
   painter.drawPolygon(chevron, std::size(chevron));
+
+  // vEgo
+  QString speedStr = QString::number(std::round(lead_comma_data.getVEgo()/10.0) * 10.0) + " m/s";
+  painter.setFont(InterFont(50, QFont::Bold));
+  painter.setPen(QColor(0xff, 0xff, 0xff, 0xff));
+  painter.drawText(x, y, speedStr);
+
 
   painter.restore();
 }
@@ -232,14 +243,15 @@ void AnnotatedCameraWidget::paintGL() {
 
     if (s->scene.longitudinal_control && sm.rcv_frame("radarState") > s->scene.started_frame) {
       auto radar_state = sm["radarState"].getRadarState();
+      auto lead_comma = sm["customReserved2"].getCustomReserved2();
       update_leads(s, radar_state, model.getPosition());
       auto lead_one = radar_state.getLeadOne();
       auto lead_two = radar_state.getLeadTwo();
       if (lead_one.getStatus()) {
-        drawLead(painter, lead_one, s->scene.lead_vertices[0]);
+        drawLead(painter, lead_one, s->scene.lead_vertices[0], lead_comma);
       }
       if (lead_two.getStatus() && (std::abs(lead_one.getDRel() - lead_two.getDRel()) > 3.0)) {
-        drawLead(painter, lead_two, s->scene.lead_vertices[1]);
+        drawLead(painter, lead_two, s->scene.lead_vertices[1], lead_comma);
       }
     }
   }
