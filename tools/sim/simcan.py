@@ -2,6 +2,7 @@
 import signal
 import threading
 import functools
+import time
 
 from collections import namedtuple
 from enum import Enum
@@ -15,6 +16,7 @@ from openpilot.common.realtime import Ratekeeper
 from openpilot.common.params import Params
 from openpilot.tools.sim.lib.common import SimulatorState, World
 
+file_launch = False
 
 def rk_loop(function, hz, exit_event: threading.Event):
   rk = Ratekeeper(hz, None)
@@ -106,14 +108,23 @@ Ignition: {self.simulator_state.ignition} Engaged: {self.simulator_state.is_enga
       self.simulator_state.is_engaged = self.simulated_car.sm['selfdriveState'].active
 
       # don't print during test, so no print/IO Block between OP and metadrive processes
-      if not self.test_run and self.rk.frame % 25 == 0:
+      if not self.test_run and self.rk.frame % 25 == 0 and file_launch:
         self.print_status()
 
       self.started.value = True
 
       self.rk.keep_time()
 
-if __name__ == '__main__':
+def main():
   queue: Any = Queue()
+
+  if not file_launch:
+    print('Wait for a moment before sim CAN')
+    time.sleep(5)
+
   carCan = SimulatedCarCan()
   carCan.run(queue)
+
+if __name__ == '__main__':
+  file_launch = True
+  main()
