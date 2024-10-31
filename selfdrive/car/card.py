@@ -104,6 +104,7 @@ class Car:
 
       # continue onto next fingerprinting step in pandad
       self.params.put_bool("FirmwareQueryDone", True)
+      print("CAN Query Done!")
     else:
       self.CI, self.CP = CI, CI.CP
       self.RI = RI

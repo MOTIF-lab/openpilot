@@ -29,6 +29,7 @@ class SimulatedCar:
 
   def send_can_messages(self, simulator_state: SimulatorState):
     if not simulator_state.valid:
+      print("sim not valid, refuse to send can")
       return
 
     msg = []
@@ -101,6 +102,7 @@ class SimulatedCar:
 
   def update(self, simulator_state: SimulatorState):
     try:
+      simulator_state.valid = True
       self.send_can_messages(simulator_state)
 
       if self.idx % 50 == 0: # only send panda states at 2hz
