@@ -24,6 +24,7 @@ public:
 
 signals:
   void openSettings(int index = 0, const QString &param = "");
+  void toggleDashcam();
 
 private:
   void showEvent(QShowEvent *event) override;
@@ -55,6 +56,7 @@ public slots:
   void offroadTransition(bool offroad);
   void showDriverView(bool show);
   void showSidebar(bool show);
+  void toggleDashcam();
 
 protected:
   void mousePressEvent(QMouseEvent* e) override;
@@ -67,6 +69,8 @@ private:
   BodyWindow *body;
   DriverViewWindow *driver_view;
   QStackedLayout *slayout;
+
+  bool enableDashcam;
 
 private slots:
   void updateState(const UIState &s);
