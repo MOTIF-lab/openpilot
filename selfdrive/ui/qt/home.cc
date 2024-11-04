@@ -6,6 +6,7 @@
 #include <QVBoxLayout>
 
 #include "selfdrive/ui/qt/offroad/experimental_mode.h"
+#include "selfdrive/ui/qt/offroad/dashcam_mode.h"
 #include "selfdrive/ui/qt/util.h"
 #include "selfdrive/ui/qt/widgets/prime.h"
 
@@ -25,6 +26,7 @@ HomeWindow::HomeWindow(QWidget* parent) : QWidget(parent) {
 
   home = new OffroadHome(this);
   QObject::connect(home, &OffroadHome::openSettings, this, &HomeWindow::openSettings);
+  QObject::connect(home, &OffroadHome::toggleDashcam, this, &HomeWindow::toggleDashcam);
   slayout->addWidget(home);
 
   onroad = new OnroadWindow(this);
@@ -37,6 +39,15 @@ HomeWindow::HomeWindow(QWidget* parent) : QWidget(parent) {
   QObject::connect(uiState(), &UIState::uiUpdate, this, &HomeWindow::updateState);
   QObject::connect(uiState(), &UIState::offroadTransition, this, &HomeWindow::offroadTransition);
   QObject::connect(uiState(), &UIState::offroadTransition, sidebar, &Sidebar::offroadTransition);
+}
+
+void HomeWindow::toggleDashcam(){
+  MessageBuilder msg;
+  printf("Toggle dashcam\n");
+  this->enableDashcam = !this->enableDashcam;
+  auto cr0 = msg.initEvent().initCustomReserved0();
+  cr0.setDashcamEnable(this->enableDashcam);
+  uiState()->pm->send("customReserved0", msg);
 }
 
 void HomeWindow::showSidebar(bool show) {
@@ -151,6 +162,10 @@ OffroadHome::OffroadHome(QWidget* parent) : QFrame(parent) {
     ExperimentalModeButton *experimental_mode = new ExperimentalModeButton(this);
     QObject::connect(experimental_mode, &ExperimentalModeButton::openSettings, this, &OffroadHome::openSettings);
     right_column->addWidget(experimental_mode, 1);
+
+    DashcamModeButton *dashcam_button = new DashcamModeButton(this);
+    QObject::connect(dashcam_button, &DashcamModeButton::toggleDashcam, this, &OffroadHome::toggleDashcam);
+    right_column->addWidget(dashcam_button,1);
 
     SetupWidget *setup_widget = new SetupWidget;
     QObject::connect(setup_widget, &SetupWidget::openSettings, this, &OffroadHome::openSettings);
