@@ -13,7 +13,7 @@ DUAL_CAM = os.getenv("DUAL_CAMERA")
 CameraType = namedtuple("CameraType", ["msg_name", "stream_type", "cam_id"])
 CAMERAS = [
   CameraType("roadCameraState", VisionStreamType.VISION_STREAM_ROAD, os.getenv("CAMERA_ROAD_ID", "0")),
-  CameraType("driverCameraState", VisionStreamType.VISION_STREAM_DRIVER, os.getenv("CAMERA_DRIVER_ID", "1")),
+  # CameraType("driverCameraState", VisionStreamType.VISION_STREAM_DRIVER, os.getenv("CAMERA_DRIVER_ID", "1")),
 ]
 if DUAL_CAM:
   CAMERAS.append(CameraType("wideRoadCameraState", VisionStreamType.VISION_STREAM_WIDE_ROAD, DUAL_CAM))
@@ -27,7 +27,7 @@ class Camerad:
     for c in CAMERAS:
       cam = Camera(c.msg_name, c.stream_type, c.cam_id)
       self.cameras.append(cam)
-      self.vipc_server.create_buffers(c.stream_type, 20, False, cam.W, cam.H)
+      self.vipc_server.create_buffers(c.stream_type, 20, cam.W, cam.H)
 
     self.vipc_server.start_listener()
 
