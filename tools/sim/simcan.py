@@ -15,7 +15,7 @@ from openpilot.tools.sim.lib.simulated_car import SimulatedCar
 from openpilot.selfdrive.test.helpers import set_params_enabled
 from openpilot.common.realtime import Ratekeeper
 from openpilot.common.params import Params
-from openpilot.tools.sim.lib.common import SimulatorState, World
+from openpilot.tools.sim.lib.common import SimulatorState
 
 from tools.sim.lib.common import vec3
 
@@ -95,24 +95,11 @@ Ignition: {self.simulator_state.ignition} Engaged: {self.simulator_state.is_enga
       if self.sm.updated["gpsLocation"]:
         msg = self.sm['gpsLocation']
         if msg.hasFix:
-          self.simulator_state.velocity = vec3(msg.vNED[0],msg.vNED[1],msg.vNED[2])
-          print("GPS fixed")
-        else:
-          print("No GPS fix, no speed")
+          self.simulator_state.speed = msg.speed
 
       if self.sm.updated['customReserved0']:
         msg = self.sm['customReserved0']
         self.simulator_state.ignition = msg.dashcamEnable
-
-      # Read manual controls
-      # if not q.empty():
-      #   message = q.get()
-      #   if message.type == QueueMessageType.CONTROL_COMMAND:
-      #     m = message.info.split('_')
-      #     if m[0] == "ignition":
-      #       self.simulator_state.ignition = not self.simulator_state.ignition
-      #     elif m[0] == "quit":
-      #       break
 
       self.simulator_state.user_brake = brake_manual
       self.simulator_state.user_gas = throttle_manual
@@ -135,10 +122,6 @@ Ignition: {self.simulator_state.ignition} Engaged: {self.simulator_state.is_enga
 
 def main():
   queue: Any = Queue()
-
-  #if not file_launch:
-  #  print('Wait for a moment before sim CAN')
-  #  time.sleep(5)
 
   carCan = SimulatedCarCan()
   carCan.run(queue)

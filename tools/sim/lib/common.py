@@ -40,7 +40,7 @@ class SimulatorState:
     self.is_engaged = False
     self.ignition = True
 
-    self.velocity: vec3 = vec3(0,0,0)
+    self.speed = 0
     self.bearing: float = 0
     self.gps = GPSState()
     self.imu = IMUState()
@@ -55,10 +55,6 @@ class SimulatorState:
 
     self.left_blinker = False
     self.right_blinker = False
-
-  @property
-  def speed(self):
-    return math.sqrt(self.velocity.x ** 2 + self.velocity.y ** 2 + self.velocity.z ** 2)
 
 
 class World(ABC):
