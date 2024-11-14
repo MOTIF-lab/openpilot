@@ -7,6 +7,7 @@
 
 #include "selfdrive/ui/qt/offroad/experimental_mode.h"
 #include "selfdrive/ui/qt/offroad/dashcam_mode.h"
+#include "selfdrive/ui/qt/offroad/traffic_map.h"
 #include "selfdrive/ui/qt/util.h"
 #include "selfdrive/ui/qt/widgets/prime.h"
 
@@ -166,6 +167,9 @@ OffroadHome::OffroadHome(QWidget* parent) : QFrame(parent) {
     DashcamModeButton *dashcam_button = new DashcamModeButton(this);
     QObject::connect(dashcam_button, &DashcamModeButton::toggleDashcam, this, &OffroadHome::toggleDashcam);
     right_column->addWidget(dashcam_button,1);
+
+    TrafficMapButton *traffic_button = new TrafficMapButton(this);
+    right_column->addWidget(traffic_button,1);
 
     SetupWidget *setup_widget = new SetupWidget;
     QObject::connect(setup_widget, &SetupWidget::openSettings, this, &OffroadHome::openSettings);
