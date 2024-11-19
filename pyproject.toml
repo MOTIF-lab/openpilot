@@ -55,6 +55,7 @@ dependencies = [
   # logreader
   "zstandard",
   "pytest>=8.3.3",
+  "openai>=1.54.5",
 ]
 
 [project.optional-dependencies]

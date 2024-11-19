@@ -19,6 +19,8 @@ struct CustomReserved2 @0xf35cc4560bbf6ec2 {
 }
 
 struct CustomReserved3 @0xda96579883444c35 {
+  gptChat @0 :Text;
+  gptResponse @1 :Text;
 }
 
 struct CustomReserved4 @0x80ae746ee2596b11 {
