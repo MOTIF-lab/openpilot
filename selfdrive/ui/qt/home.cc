@@ -10,6 +10,7 @@
 #include "selfdrive/ui/qt/offroad/traffic_map.h"
 #include "selfdrive/ui/qt/util.h"
 #include "selfdrive/ui/qt/widgets/prime.h"
+#include "selfdrive/ui/qt/widgets/chatbox.h"
 
 // HomeWindow: the container for the offroad and onroad UIs
 
@@ -144,7 +145,7 @@ OffroadHome::OffroadHome(QWidget* parent) : QFrame(parent) {
     left_prime_layout->addWidget(prime_user);
     left_prime_layout->addStretch();
     left_widget->addWidget(new LayoutWidget(left_prime_layout));
-    left_widget->addWidget(new PrimeAdWidget);
+    left_widget->addWidget(new ChatboxWidget);
     left_widget->setStyleSheet("border-radius: 10px;");
 
     connect(uiState()->prime_state, &PrimeState::changed, [left_widget]() {

@@ -48,7 +48,6 @@ class Camerad:
     rk = Ratekeeper(20, None)
     for yuv in cam.read_frames():
       self._send_yuv(yuv, cam.cur_frame_id, cam.cam_type_state, cam.stream_type)
-      cam.cur_frame_id += 1
       rk.keep_time()
 
   def run(self):

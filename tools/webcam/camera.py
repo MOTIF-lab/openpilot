@@ -10,7 +10,6 @@ class Camera:
         self.cur_frame_id = 0
         if not self.camera.isOpened():
             raise ValueError(f"Can't open video stream for camera {camera_id}")
-
         self.W = int(self.camera.get(cv2.CAP_PROP_FRAME_WIDTH))
         self.H = int(self.camera.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
@@ -28,12 +27,13 @@ class Camera:
             ret, frame = self.camera.read()
             if not ret:
                 break
-
+            frame = cv2.flip(frame,0)
             # Convert to NV12 format
             nv12_frame = self.bgr2nv12(frame)
 
             # Yield the NV12 data
             yield nv12_frame.tobytes()
+            self.cur_frame_id += 1
 
         self.camera.release()
 

@@ -54,7 +54,7 @@ dependencies = [
   "setproctitle",
   # logreader
   "zstandard",
-  "python-opencv",
+  "pytest>=8.3.3",
 ]
 
 [project.optional-dependencies]
