@@ -2,9 +2,9 @@
 
 export PASSIVE="0"
 export NOBOARD="1"
-export SIMULATION="1"
+export SIMULATION="0"
 export SKIP_FW_QUERY="1"
-export FINGERPRINT="HONDA_CIVIC_2022"
+export FINGERPRINT="mock"
 
 export BLOCK="${BLOCK}"
 if [[ "$CI" ]]; then

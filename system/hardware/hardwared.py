@@ -164,7 +164,7 @@ def hw_state_thread(end_event, hw_queue):
 
 def hardware_thread(end_event, hw_queue) -> None:
   pm = messaging.PubMaster(['deviceState'])
-  sm = messaging.SubMaster(["peripheralState", "gpsLocationExternal", "selfdriveState", "pandaStates"], poll="pandaStates")
+  sm = messaging.SubMaster(["peripheralState", "gpsLocationExternal", "selfdriveState", "pandaStates", "customReserved2"], poll="pandaStates")
 
   count = 0
 
@@ -209,12 +209,13 @@ def hardware_thread(end_event, hw_queue) -> None:
 
     pandaStates = sm['pandaStates']
     peripheralState = sm['peripheralState']
+    obdState = sm['customReserved2']
     peripheral_panda_present = peripheralState.pandaType != log.PandaState.PandaType.unknown
 
     if sm.updated['pandaStates'] and len(pandaStates) > 0:
 
       # Set ignition based on any panda connected
-      onroad_conditions["ignition"] = any(ps.ignitionLine or ps.ignitionCan for ps in pandaStates if ps.pandaType != log.PandaState.PandaType.unknown)
+      onroad_conditions["ignition"] = any(obdState.ignitionObd or ps.ignitionLine or ps.ignitionCan for ps in pandaStates if ps.pandaType != log.PandaState.PandaType.unknown)
 
       pandaState = pandaStates[0]
 
