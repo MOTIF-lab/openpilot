@@ -2,6 +2,7 @@
 import os
 import time
 import threading
+import logging
 import cereal.messaging as messaging
 from openpilot.selfdrive.car.card import can_comm_callbacks, obd_callback
 from openpilot.common.params import Params
@@ -22,22 +23,36 @@ class OBDCar:
   def __init__(self):
     self.ecu_addr = ECU_ADDR
 
-    self.rk = Ratekeeper(10, print_delay_threshold=None)
+    self.rk = Ratekeeper(1, print_delay_threshold=None)
 
     self.logcan = messaging.sub_sock('can')
     self.sendcan = messaging.pub_sock('sendcan')
     self.pm = messaging.PubMaster(['customReserved2'])
+    self.sm = messaging.SubMaster(['pandaStates'])
 
     self.can_transiver = can_comm_callbacks(self.logcan, self.sendcan)
     self.params = Params()
     self.set_obd_multiplexing = obd_callback(self.params)
 
-    self.retry = 2
+    self.retry = 5
     self.can_bus_id = 0
 
     self.engineStatus = 0
 
     print('Init OBD query')
+    # check if panda is connected
+    for i in range(self.retry):
+      pandaStates = messaging.recv_one_or_none(self.sm.sock['pandaStates'])
+      if pandaStates == None:
+        print('Panda is not connected or pandaStates has not start publishing, retrying...{}'.format(i))
+        time.sleep(0.5)
+        if i == self.retry - 1:
+          print('Panda is not connected, please check panda')
+          exit(1)
+      else:
+        print('Panda is connected')
+        break
+
     self.params.put_bool("IsOnroad", False)
     time.sleep(0.2)  # thread is 10 Hz
     self.params.put_bool("IsOnroad", True)
@@ -53,37 +68,35 @@ class OBDCar:
     return None
 
   def query_engine_status(self):
-    # req_bytes, res_bytes = make_isotp_query(
-    #   0x01, # show current data
-    #   0x03 # fuel system status
-    # )
+    req_bytes, res_bytes = make_isotp_query(
+      0x01, # show current data
+      0x03 # fuel system status
+    )
     for i in range(self.retry):
       query = IsoTpParallelQuery(
         self.can_transiver[1], self.can_transiver[0], self.can_bus_id,
-        [0x7e4], [b'\x22\x01\x01'], [b''], debug=True
+        [0x7e4], [b'\x22\x01\x01'], [b''], debug=True #FIXME: 0x7e4 is the address of the car ECU, need to be changed
       )
       result = self.exec_query(query)
       if result == None:
+        logging.warning('OBD query failed, retrying...{}'.format(i))
+        self.engineStatus = 0
         pass
       else:
-        break
+        print(result)
+        self.engineStatus = True
 
-      # if result == None:
-      #   self.engineStatus = 0
-      # else:
-      #   self.engineStatus = result
 
   def update(self):
-    # self.query_engine_status()
+    self.query_engine_status()
     self.state_publish()
 
   def state_publish(self):
     obdState = messaging.new_message('customReserved2')
-    obdState.customReserved2.ignitionObd = True
+    obdState.customReserved2.ignitionObd = self.engineStatus
     obdState.customReserved2.speedObdValid = True
     obdState.customReserved2.speedObd = 0
     obdState.valid = True
-    print(obdState)
     self.pm.send('customReserved2', obdState)
 
   def obd_thread(self):

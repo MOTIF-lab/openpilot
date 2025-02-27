@@ -84,7 +84,7 @@ class Car:
     if CI is None:
       # wait for one pandaState and one CAN packet
       print("Waiting for CAN messages...")
-      while True:
+      while not os.environ.get("SKIP_FW_QUERY"):
         can = messaging.recv_one_retry(self.can_sock)
         if len(can.can) > 0:
           break

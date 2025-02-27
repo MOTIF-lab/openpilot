@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 
-export PASSIVE="0"
+export PASSIVE="1"
 export NOBOARD="1"
-export SIMULATION="0"
+export SIMULATION="1"
 export SKIP_FW_QUERY="1"
-export FINGERPRINT="mock"
+export FINGERPRINT="MOCK"
 
-export BLOCK="${BLOCK}"
+export BLOCK="${BLOCK},selfdrived,controlsd,radard,torqued,micd,plannerd"
 if [[ "$CI" ]]; then
   # TODO: offscreen UI should work
   export BLOCK="${BLOCK},ui"
