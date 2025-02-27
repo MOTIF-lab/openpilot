@@ -4,7 +4,7 @@ import time
 import threading
 
 import cereal.messaging as messaging
-
+import logging
 from cereal import car, log
 
 from openpilot.common.params import Params
@@ -27,6 +27,7 @@ REPLAY = "REPLAY" in os.environ
 EventName = log.OnroadEvent.EventName
 
 # forward
+carlog = logging.getLogger('carlog')
 carlog.addHandler(ForwardingHandler(cloudlog))
 
 

@@ -45,7 +45,7 @@ class SimulatedCarCan:
     self.simulator_state.ignition = False
     self.started = Value('i', False)
 
-    self.sm = messaging.SubMaster(['gpsLocation', 'customReserved0'])
+    self.sm = messaging.SubMaster(['gpsLocation', 'customReserved0' ])
 
     self.test_run = False
 

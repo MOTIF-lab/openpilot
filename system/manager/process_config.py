@@ -113,7 +113,7 @@ procs = [
   # Sim procs
   PythonProcess("carcansim", "tools.sim.simcan", only_sim),
   PythonProcess("mockselfdrived", "tools.obdlog.mock_selfdrived", only_sim),
-  # PythonProcess("obdquery", "selfdrive.car.obd_car", always_run),
+  PythonProcess("obdquery", "selfdrive.car.obd_car", always_run),
 
   # debug procs
   NativeProcess("bridge", "cereal/messaging", ["./bridge"], notcar),

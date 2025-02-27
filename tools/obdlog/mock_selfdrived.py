@@ -41,6 +41,9 @@ class MockSelfdriveD:
       self.update(frame)
       self.rk.keep_time()
 
-if __name__ == "__main__":
+def main():
   mock_selfdrived = MockSelfdriveD()
   mock_selfdrived.run()
+
+if __name__ == "__main__":
+  main()

@@ -9,6 +9,7 @@ from openpilot.common.params import Params
 from opendbc.car.isotp_parallel_query import IsoTpParallelQuery
 from openpilot.common.realtime import  Ratekeeper
 from hexdump import hexdump
+from opendbc.car.carlog import carlog
 
 ECU_ADDR = 0x7e0
 
@@ -18,6 +19,8 @@ def make_isotp_query(service: int, pid:int):
   response_byte = bytearray(0x40 + pid)
   response_byte.append(pid)
   return request_byte, response_byte
+
+carlog.setLevel('DEBUG')
 
 class OBDCar:
   def __init__(self):
@@ -75,7 +78,7 @@ class OBDCar:
     for i in range(self.retry):
       query = IsoTpParallelQuery(
         self.can_transiver[1], self.can_transiver[0], self.can_bus_id,
-        [0x7e4], [b'\x22\x01\x01'], [b''], debug=True #FIXME: 0x7e4 is the address of the car ECU, need to be changed
+        [ECU_ADDR], [b'\x22\x01\x01'], [b''] #FIXME: 0x7e4 is the address of the car ECU, need to be changed
       )
       result = self.exec_query(query)
       if result == None:
@@ -107,8 +110,6 @@ class OBDCar:
         self.rk.keep_time()
     except Exception as e:
       print(e)
-    finally:
-      e.set()
 
 
 def main():
