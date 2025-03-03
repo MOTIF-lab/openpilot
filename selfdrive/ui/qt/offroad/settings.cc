@@ -15,6 +15,7 @@
 #include "selfdrive/ui/qt/widgets/scrollview.h"
 #include "selfdrive/ui/qt/offroad/developer_panel.h"
 #include "selfdrive/ui/qt/offroad/firehose.h"
+#include "selfdrive/ui/qt/home.h"
 
 TogglesPanel::TogglesPanel(SettingsWindow *parent) : ListWidget(parent) {
   // param, title, desc, icon
@@ -253,6 +254,11 @@ DevicePanel::DevicePanel(SettingsWindow *parent) : ListWidget(parent) {
   power_layout->addWidget(poweroff_btn);
   QObject::connect(poweroff_btn, &QPushButton::clicked, this, &DevicePanel::poweroff);
 
+  // QPushButton *dashcam_toggle = new QPushButton("Toggle Dashcam");
+  // dashcam_toggle->setObjectName("dashcam_toggle");
+  // power_layout->addWidget(dashcam_toggle);
+  // QObject::connect(dashcam_toggle, &QPushButton::clicked, &HomeWindow::toggleDashcam);
+
   if (!Hardware::PC()) {
     connect(uiState(), &UIState::offroadTransition, poweroff_btn, &QPushButton::setVisible);
   }
@@ -262,6 +268,8 @@ DevicePanel::DevicePanel(SettingsWindow *parent) : ListWidget(parent) {
     #reboot_btn:pressed { background-color: #4a4a4a; }
     #poweroff_btn { height: 120px; border-radius: 15px; background-color: #E22C2C; }
     #poweroff_btn:pressed { background-color: #FF2424; }
+    #dashcam_toggle { height: 120px; border-radius: 15px; background-color: #393939; }
+    #dashcam_toggle:pressed { background-color: #4a4a4a; }
   )");
   addItem(power_layout);
 }
@@ -326,7 +334,7 @@ void SettingsWindow::setCurrentPanel(int index, const QString &param) {
     if (param.endsWith("Panel")) {
       QString panelName = param;
       panelName.chop(5); // Remove "Panel" suffix
-      
+
       // Find the panel by name
       for (int i = 0; i < nav_btns->buttons().size(); i++) {
         if (nav_btns->buttons()[i]->text() == tr(panelName.toStdString().c_str())) {
@@ -338,7 +346,7 @@ void SettingsWindow::setCurrentPanel(int index, const QString &param) {
       emit expandToggleDescription(param);
     }
   }
-  
+
   panel_widget->setCurrentIndex(index);
   nav_btns->buttons()[index]->setChecked(true);
 }

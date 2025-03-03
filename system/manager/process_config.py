@@ -54,6 +54,10 @@ def only_onroad(started: bool, params: Params, CP: car.CarParams) -> bool:
 def only_offroad(started: bool, params: Params, CP: car.CarParams) -> bool:
   return not started
 
+def only_sim(started: bool, params: Params, CP: car.CarParams) -> bool:
+  return os.environ['SIMULATION'] == '1'
+
+
 def or_(*fns):
   return lambda *args: operator.or_(*(fn(*args) for fn in fns))
 
@@ -106,6 +110,11 @@ procs = [
   PythonProcess("updated", "system.updated.updated", only_offroad, enabled=not PC),
   PythonProcess("uploader", "system.loggerd.uploader", always_run),
   PythonProcess("statsd", "system.statsd", always_run),
+
+  # Sim procs
+  PythonProcess("carcansim", "tools.sim.simcan", only_sim),
+  PythonProcess("mockselfdrived", "tools.obdlog.mock_selfdrived", only_sim),
+  PythonProcess("obdquery", "selfdrive.car.obd_car", always_run),
 
   # debug procs
   NativeProcess("bridge", "cereal/messaging", ["./bridge"], notcar),

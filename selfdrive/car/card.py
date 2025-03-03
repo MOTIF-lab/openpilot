@@ -4,7 +4,7 @@ import time
 import threading
 
 import cereal.messaging as messaging
-
+import logging
 from cereal import car, log
 
 from openpilot.common.params import Params
@@ -27,6 +27,7 @@ REPLAY = "REPLAY" in os.environ
 EventName = log.OnroadEvent.EventName
 
 # forward
+carlog = logging.getLogger('carlog')
 carlog.addHandler(ForwardingHandler(cloudlog))
 
 
@@ -84,7 +85,7 @@ class Car:
     if CI is None:
       # wait for one pandaState and one CAN packet
       print("Waiting for CAN messages...")
-      while True:
+      while not os.environ.get("SKIP_FW_QUERY"):
         can = messaging.recv_one_retry(self.can_sock)
         if len(can.can) > 0:
           break
@@ -104,6 +105,7 @@ class Car:
 
       # continue onto next fingerprinting step in pandad
       self.params.put_bool("FirmwareQueryDone", True)
+      print("CAN Query Done!")
     else:
       self.CI, self.CP = CI, CI.CP
       self.RI = RI

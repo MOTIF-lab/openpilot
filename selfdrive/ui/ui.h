@@ -73,6 +73,7 @@ public:
   }
 
   std::unique_ptr<SubMaster> sm;
+  std::unique_ptr<PubMaster> pm;
   UIStatus status;
   UIScene scene = {};
   QString language;

@@ -37,17 +37,21 @@ static void update_state(UIState *s) {
       s->scene.view_from_calib = s->scene.view_from_wide_calib = VIEW_FROM_DEVICE;
     }
   }
-  if (sm.updated("pandaStates")) {
+  if (sm.updated("pandaStates") || sm.updated("customReserved2")) {
     auto pandaStates = sm["pandaStates"].getPandaStates();
+    auto customeReserved2 = sm["customReserved2"].getCustomReserved2();
     if (pandaStates.size() > 0) {
       scene.pandaType = pandaStates[0].getPandaType();
 
       if (scene.pandaType != cereal::PandaState::PandaType::UNKNOWN) {
         scene.ignition = false;
         for (const auto& pandaState : pandaStates) {
-          scene.ignition |= pandaState.getIgnitionLine() || pandaState.getIgnitionCan();
+          scene.ignition |= pandaState.getIgnitionLine() || pandaState.getIgnitionCan() || customeReserved2.getIgnitionObd();
         }
       }
+    }
+    else {
+      scene.ignition |= customeReserved2.getIgnitionObd();
     }
   } else if ((s->sm->frame - s->sm->rcv_frame("pandaStates")) > 5*UI_FREQ) {
     scene.pandaType = cereal::PandaState::PandaType::UNKNOWN;
@@ -94,6 +98,10 @@ UIState::UIState(QObject *parent) : QObject(parent) {
     "modelV2", "controlsState", "liveCalibration", "radarState", "deviceState",
     "pandaStates", "carParams", "driverMonitoringState", "carState", "driverStateV2",
     "wideRoadCameraState", "managerState", "selfdriveState", "longitudinalPlan",
+    "customReserved2"
+  });
+  pm = std::make_unique<PubMaster>(std::vector<const char*> {
+    "customReserved0"
   });
   prime_state = new PrimeState(this);
   language = QString::fromStdString(Params().get("LanguageSetting"));

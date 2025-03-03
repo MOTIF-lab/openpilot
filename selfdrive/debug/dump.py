@@ -60,7 +60,11 @@ if __name__ == "__main__":
             if hasattr(evt, value[0]):
               item = evt
               for key in value:
-                item = getattr(item, key)
+                if hasattr(item,'__len__'): # is an array
+                  for itm in item:
+                    item = getattr(itm, key)
+                else:
+                  item = getattr(item, key)
               print(f"{'.'.join(value)} = {item}")
           print("")
         else:
