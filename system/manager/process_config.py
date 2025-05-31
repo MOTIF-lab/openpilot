@@ -7,6 +7,7 @@ from openpilot.system.hardware import PC, TICI
 from openpilot.system.manager.process import PythonProcess, NativeProcess, DaemonProcess
 
 WEBCAM = os.getenv("USE_WEBCAM") is not None
+USE_UBLOX = os.getenv("USE_UBLOX") is not None
 
 def driverview(started: bool, params: Params, CP: car.CarParams) -> bool:
   return started or params.get_bool("IsDriverViewEnabled")
@@ -22,7 +23,7 @@ def logging(started: bool, params: Params, CP: car.CarParams) -> bool:
   return started and run
 
 def ublox_available() -> bool:
-  return os.path.exists('/dev/ttyHS0') and not os.path.exists('/persist/comma/use-quectel-gps')
+  return (os.path.exists('/dev/ttyHS0') and not os.path.exists('/persist/comma/use-quectel-gps')) or USE_UBLOX
 
 def ublox(started: bool, params: Params, CP: car.CarParams) -> bool:
   use_ublox = ublox_available()
@@ -95,8 +96,8 @@ procs = [
   PythonProcess("pandad", "selfdrive.pandad.pandad", always_run),
   PythonProcess("paramsd", "selfdrive.locationd.paramsd", only_onroad),
   PythonProcess("lagd", "selfdrive.locationd.lagd", only_onroad),
-  NativeProcess("ubloxd", "system/ubloxd", ["./ubloxd"], ublox, enabled=TICI),
-  PythonProcess("pigeond", "system.ubloxd.pigeond", ublox, enabled=TICI),
+  NativeProcess("ubloxd", "system/ubloxd", ["./ubloxd"], ublox, enabled=TICI or USE_UBLOX),
+  PythonProcess("pigeond", "system.ubloxd.pigeond", ublox, enabled=TICI or USE_UBLOX),
   PythonProcess("plannerd", "selfdrive.controls.plannerd", not_long_maneuver),
   PythonProcess("maneuversd", "tools.longitudinal_maneuvers.maneuversd", long_maneuver),
   PythonProcess("radard", "selfdrive.controls.radard", only_onroad),

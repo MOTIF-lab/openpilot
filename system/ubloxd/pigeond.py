@@ -7,16 +7,19 @@ import struct
 import requests
 import urllib.parse
 from datetime import datetime, UTC
+import os
+import glob
 
 from cereal import messaging
 from openpilot.common.time_helpers import system_time_valid
 from openpilot.common.params import Params
 from openpilot.common.swaglog import cloudlog
-from openpilot.system.hardware import TICI
+from openpilot.system.hardware import PC, TICI
 from openpilot.common.gpio import gpio_init, gpio_set
 from openpilot.system.hardware.tici.pins import GPIO
 
-UBLOX_TTY = "/dev/ttyHS0"
+TICI_UBLOX_TTY = "/dev/ttyHS0"
+UBLOX_USB_DID = '1-1'
 
 UBLOX_ACK = b"\xb5\x62\x05\x01\x02\x00"
 UBLOX_NACK = b"\xb5\x62\x05\x00\x02\x00"
@@ -33,6 +36,36 @@ def set_power(enabled: bool) -> None:
   gpio_set(GPIO.UBLOX_SAFEBOOT_N, True)
   gpio_set(GPIO.GNSS_PWR_EN, enabled)
   gpio_set(GPIO.UBLOX_RST_N, enabled)
+
+def get_ublox_usb_did() -> str:
+  cdc_acm = glob.glob("/sys/bus/usb/drivers/cdc_acm/*/")
+  if len(cdc_acm) == 0:
+    cloudlog.error("No cdc_acm driver found")
+    return None
+  for device_path in cdc_acm:
+    # check if tty directory exists
+    if not os.path.exists(os.path.join(device_path, "tty")):
+      continue
+    with open(os.path.join(device_path, "uevent"), "r") as f:
+      uevent = f.read()
+      if "PRODUCT=1546/1a8" in uevent:
+        # found ublox device
+        usb_did = device_path.split("/")[-2]
+        cloudlog.info(f"Found ublox USB device with did: {usb_did}")
+        return usb_did
+  cloudlog.error("No ublox USB device found")
+  return None
+
+def get_ublox_tty(usb_did) -> str:
+  try:
+    tty = glob.glob(f"/sys/bus/usb/devices/{usb_did}/tty/*")[0]
+    tty = tty.split("/")[-1]  # get the tty name
+    cloudlog.info(f"Using ublox tty: {tty}")
+    return f"/dev/{tty}"
+  except IndexError:
+    cloudlog.error(f"Failed to find ublox tty for usb did: {usb_did}")
+    return None
+
 
 def add_ubx_checksum(msg: bytes) -> bytes:
   A = B = 0
@@ -63,8 +96,8 @@ def get_assistnow_messages(token: bytes) -> list[bytes]:
 
 
 class TTYPigeon:
-  def __init__(self):
-    self.tty = serial.VTIMESerial(UBLOX_TTY, baudrate=9600, timeout=0)
+  def __init__(self, tty_port):
+    self.tty = serial.VTIMESerial(tty_port, baudrate=9600, timeout=0)
 
   def send(self, dat: bytes) -> None:
     self.tty.write(dat)
@@ -120,6 +153,9 @@ class TTYPigeon:
       # device cold start
       self.send(b"\xb5\x62\x06\x04\x04\x00\xff\xff\x00\x00\x0c\x5d")
       time.sleep(1) # wait for cold start
+
+      if PC:
+        return True
       init_baudrate(self)
 
       # clear configuration
@@ -256,23 +292,30 @@ def deinitialize_and_exit(pigeon: TTYPigeon | None):
       pass
 
   # turn off power and exit cleanly
-  set_power(False)
+  if PC:
+    pigeon.reset_device()
+    time.sleep(0.5)
+  else:
+    set_power(False)
+    time.sleep(0.1)
   sys.exit(0)
 
-def create_pigeon() -> tuple[TTYPigeon, messaging.PubMaster]:
+def create_pigeon(tty_port=TICI_UBLOX_TTY) -> tuple[TTYPigeon, messaging.PubMaster]:
   pigeon = None
-
   # register exit handler
   signal.signal(signal.SIGINT, lambda sig, frame: deinitialize_and_exit(pigeon))
   pm = messaging.PubMaster(['ubloxRaw'])
 
-  # power cycle ublox
-  set_power(False)
-  time.sleep(0.1)
-  set_power(True)
-  time.sleep(0.5)
+  if PC:
+    pass
+  else:
+    # power cycle ublox
+    set_power(False)
+    time.sleep(0.1)
+    set_power(True)
+    time.sleep(0.5)
 
-  pigeon = TTYPigeon()
+  pigeon = TTYPigeon(tty_port=tty_port)
   return pigeon, pm
 
 def run_receiving(pigeon: TTYPigeon, pm: messaging.PubMaster, duration: int = 0):
@@ -285,10 +328,11 @@ def run_receiving(pigeon: TTYPigeon, pm: messaging.PubMaster, duration: int = 0)
     dat = pigeon.receive()
     if len(dat) > 0:
       if dat[0] == 0x00:
-        cloudlog.warning("received invalid data from ublox, re-initing!")
-        init_baudrate(pigeon)
-        initialize_pigeon(pigeon)
-        continue
+        if not PC:
+          cloudlog.warning("received invalid data from ublox, re-initing!")
+          init_baudrate(pigeon)
+          initialize_pigeon(pigeon)
+          continue
 
       # send out to socket
       msg = messaging.new_message('ubloxRaw', len(dat), valid=True)
@@ -300,9 +344,14 @@ def run_receiving(pigeon: TTYPigeon, pm: messaging.PubMaster, duration: int = 0)
 
 
 def main():
-  assert TICI, "unsupported hardware for pigeond"
-
-  pigeon, pm = create_pigeon()
+  ublox_tty = None
+  if PC:
+    usb_did = get_ublox_usb_did()
+    ublox_tty = get_ublox_tty(usb_did)
+    print(f"Using ublox USB did: {ublox_tty}")
+  else:
+    assert TICI, "unsupported hardware for pigeond"
+  pigeon, pm = create_pigeon(ublox_tty if ublox_tty else TICI_UBLOX_TTY)
   init_baudrate(pigeon)
   initialize_pigeon(pigeon)
 
