@@ -1,18 +1,19 @@
 #!/usr/bin/env python3
 import os
-import platform
+from pathlib import Path
 from openpilot.system.hardware import TICI
 USBGPU = "USBGPU" in os.environ
 if USBGPU:
   os.environ['AMD'] = '1'
+  os.environ['AMD_IFACE'] = 'USB'
 elif TICI:
   from openpilot.selfdrive.modeld.runners.tinygrad_helpers import qcom_tensor_from_opencl_address
   os.environ['QCOM'] = '1'
-# TODO: switch to Metal on macOS?
-elif platform.system() == "Darwin":
-  os.environ['METAL'] = '1'
 else:
-  os.environ['GPU'] = '1'
+  import json
+  with open(Path(__file__).parent / 'models/modeld_flags.json') as f:
+    flags = json.load(f)
+    os.environ.update(flags)
 from tinygrad.tensor import Tensor
 from tinygrad.dtype import dtypes
 import time
@@ -20,7 +21,6 @@ import pickle
 import numpy as np
 import cereal.messaging as messaging
 from cereal import car, log
-from pathlib import Path
 from setproctitle import setproctitle
 from cereal.messaging import PubMaster, SubMaster
 from msgq.visionipc import VisionIpcClient, VisionStreamType, VisionBuf
@@ -199,11 +199,12 @@ def main(demo=False):
     # also need to move the aux USB interrupts for good timings
     config_realtime_process(7, 54)
 
+  st = time.monotonic()
   cloudlog.warning("setting up CL context")
   cl_context = CLContext()
   cloudlog.warning("CL context ready; loading model")
   model = ModelState(cl_context)
-  cloudlog.warning("models loaded, modeld starting")
+  cloudlog.warning(f"models loaded in {time.monotonic() - st:.1f}s, modeld starting")
 
   # visionipc clients
   while True:
