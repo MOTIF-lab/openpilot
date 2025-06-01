@@ -1,6 +1,7 @@
 import itertools
 import numpy as np
 from dataclasses import dataclass
+import yaml
 
 import openpilot.common.transformations.orientation as orient
 
@@ -35,11 +36,64 @@ class _NoneCameraConfig(CameraConfig):
   height: int = 0
   focal_length: float = 0
 
+class YamlCameraConfig():
+
+  def __init__(self, config_yaml_path):
+    # load camera config from yaml file
+    with open(config_yaml_path, encoding='utf-8') as f:
+      config = yaml.safe_load(f)
+    if not isinstance(config, dict):
+      raise ValueError(f"Invalid camera config in {config_yaml_path}")
+    for key in ['image_width', 'image_height', 'camera_matrix', 'distortion_coefficients', 'projection_matrix']:
+      if key not in config:
+        raise ValueError(f"Missing {key} in camera config {config_yaml_path}")
+    self.config = config
+    self.width = config['image_width']
+    self.height = config['image_height']
+    self.focal_length = config['camera_matrix']['data'][0]  # focal length is the first element in camera_matrix
+    self.width = int(self.width)
+    self.height = int(self.height)
+    if self.width <= 0 or self.height <= 0:
+      raise ValueError(f"Invalid camera size {self.width}x{self.height} in {config_yaml_path}")
+
+  @property
+  def size(self):
+    return (self.width, self.height)
+
+
+  @property
+  def intrinsics(self):
+    # aka 'K' aka camera_frame_from_view_frame
+    return np.array([
+      [self.config['camera_matrix']['data'][0], 0.0, self.config['camera_matrix']['data'][2]],
+      [0.0, self.config['camera_matrix']['data'][4], self.config['camera_matrix']['data'][5]],
+      [0.0,  0.0, 1.0]
+    ])
+
+  @property
+  def distortion(self):
+    # aka 'D' aka camera_frame_from_view_frame
+    return np.array(self.config['distortion_coefficients']['data'])
+
+  @property
+  def projection_matrix(self):
+    # aka 'P' aka camera_frame_from_view_frame
+    return np.array([
+      [self.config['projection_matrix']['data'][0], 0.0, self.config['projection_matrix']['data'][2], 0.0],
+      [0.0, self.config['projection_matrix']['data'][4], self.config['projection_matrix']['data'][5], 0.0],
+      [0.0,  0.0, 1.0, 0.0]
+    ])
+
+  @property
+  def intrinsics_inv(self):
+    # aka 'K_inv' aka view_frame_from_camera_frame
+    return np.linalg.inv(self.intrinsics)
+
 @dataclass(frozen=True)
 class DeviceCameraConfig:
-  fcam: CameraConfig
-  dcam: CameraConfig
-  ecam: CameraConfig
+  fcam: CameraConfig | YamlCameraConfig
+  dcam: CameraConfig | YamlCameraConfig
+  ecam: CameraConfig | YamlCameraConfig
 
   def all_cams(self):
     for cam in ['fcam', 'dcam', 'ecam']:
@@ -51,7 +105,13 @@ _os_fisheye = CameraConfig(2688 // 2, 1520 // 2, 567.0 / 4 * 3)
 _ar_ox_config = DeviceCameraConfig(CameraConfig(1928, 1208, 2648.0), _ar_ox_fisheye, _ar_ox_fisheye)
 _os_config = DeviceCameraConfig(CameraConfig(2688 // 2, 1520 // 2, 1522.0 * 3 / 4), _os_fisheye, _os_fisheye)
 _neo_config = DeviceCameraConfig(CameraConfig(1164, 874, 910.0), CameraConfig(816, 612, 650.0), _NoneCameraConfig())
-_pc_config = DeviceCameraConfig(CameraConfig(1920, 1080, 1477.0), CameraConfig(1920, 1080, 1477.0), _NoneCameraConfig())
+#_pc_config = DeviceCameraConfig(CameraConfig(1920, 1080, 1477.0), CameraConfig(1920, 1080, 1477.0), _NoneCameraConfig())
+
+_pc_config = DeviceCameraConfig(
+  YamlCameraConfig("./selfdrive/assets/camera/n60_1080p.yaml"),
+  YamlCameraConfig("./selfdrive/assets/camera/n60_1080p.yaml"),
+  _NoneCameraConfig()
+)
 
 DEVICE_CAMERAS = {
   # A "device camera" is defined by a device type and sensor
