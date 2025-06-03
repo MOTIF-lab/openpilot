@@ -2,6 +2,7 @@ import itertools
 import numpy as np
 from dataclasses import dataclass
 import yaml
+import os
 
 import openpilot.common.transformations.orientation as orient
 
@@ -108,8 +109,8 @@ _neo_config = DeviceCameraConfig(CameraConfig(1164, 874, 910.0), CameraConfig(81
 #_pc_config = DeviceCameraConfig(CameraConfig(1920, 1080, 1477.0), CameraConfig(1920, 1080, 1477.0), _NoneCameraConfig())
 
 _pc_config = DeviceCameraConfig(
-  YamlCameraConfig("./selfdrive/assets/camera/n60_1080p.yaml"),
-  YamlCameraConfig("./selfdrive/assets/camera/n60_1080p.yaml"),
+  YamlCameraConfig(os.path.abspath(os.path.join(os.path.abspath(__file__), "../../../selfdrive/assets/camera/n60_1080p.yaml"))),
+  YamlCameraConfig(os.path.abspath(os.path.join(os.path.abspath(__file__), "../../../selfdrive/assets/camera/n60_1080p.yaml"))),
   _NoneCameraConfig()
 )
 
