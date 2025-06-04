@@ -32,6 +32,7 @@ MAX_UPLOAD_SIZES = {
 allow_sleep = bool(os.getenv("UPLOADER_SLEEP", "1"))
 force_wifi = os.getenv("FORCEWIFI") is not None
 fake_upload = os.getenv("FAKEUPLOAD") is not None
+allow_all_upload = os.getenv("UPLOADER_ALL_UPLOAD") is not None
 
 
 class FakeRequest:
@@ -86,6 +87,10 @@ class Uploader:
 
     self.immediate_folders = ["crash/", "boot/"]
     self.immediate_priority = {"qlog": 0, "qlog.zst": 0, "qcamera.ts": 1}
+    if allow_all_upload:
+      self.immediate_priority.update({"rlog": 2, "rlog.zst": 2,
+                                      "fcamera.hevc": 3, "ecamera.hevc": 3,
+                                      "dcamera.hevc": 4})
 
   def list_upload_files(self, metered: bool) -> Iterator[tuple[str, str, str]]:
     r = self.params.get("AthenadRecentlyViewedRoutes", encoding="utf8")
@@ -121,7 +126,7 @@ class Uploader:
           if logdir in self.immediate_folders and (datetime.datetime.now() - datetime.datetime.fromtimestamp(ctime)) < dt:
             continue
 
-          if name == "qcamera.ts" and not any(logdir.startswith(r.split('|')[-1]) for r in requested_routes):
+          if (name.endswith('.ts') or name.endswith('.hevc')) and not any(logdir.startswith(r.split('|')[-1]) for r in requested_routes):
             continue
 
         yield name, key, fn
