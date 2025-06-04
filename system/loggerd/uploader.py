@@ -34,6 +34,8 @@ force_wifi = os.getenv("FORCEWIFI") is not None
 fake_upload = os.getenv("FAKEUPLOAD") is not None
 allow_all_upload = os.getenv("UPLOADER_ALL_UPLOAD") is not None
 
+if allow_all_upload:
+  UPLOAD_ATTR_NAME += "_all"
 
 class FakeRequest:
   def __init__(self):
