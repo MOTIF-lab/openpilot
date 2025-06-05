@@ -128,7 +128,7 @@ class Uploader:
           if logdir in self.immediate_folders and (datetime.datetime.now() - datetime.datetime.fromtimestamp(ctime)) < dt:
             continue
 
-          if (name.endswith('.ts') or name.endswith('.hevc')) and not any(logdir.startswith(r.split('|')[-1]) for r in requested_routes):
+          if (name.endswith(('.ts', '.hevc'))) and not any(logdir.startswith(r.split('|')[-1]) for r in requested_routes):
             continue
 
         yield name, key, fn

@@ -65,6 +65,10 @@ function launch {
     fi
   fi
 
+  if [ -f "${DIR}/comma_motif.sh" ]; then
+    source "${DIR}/comma_motif.sh"
+  fi
+
   # handle pythonpath
   ln -sfn $(pwd) /data/pythonpath
   export PYTHONPATH="$PWD"
