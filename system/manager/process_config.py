@@ -1,5 +1,6 @@
 import os
 import operator
+import platform
 
 from cereal import car
 from openpilot.common.params import Params

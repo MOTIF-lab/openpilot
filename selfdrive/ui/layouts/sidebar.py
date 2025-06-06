@@ -5,6 +5,7 @@ from collections.abc import Callable
 from cereal import log
 from openpilot.selfdrive.ui.ui_state import ui_state
 from openpilot.system.ui.lib.application import gui_app, FontWeight
+from openpilot.system.ui.lib.text_measure import measure_text_cached
 
 SIDEBAR_WIDTH = 300
 METRIC_HEIGHT = 126
@@ -16,6 +17,7 @@ HOME_BTN = rl.Rectangle(60, 860, 180, 180)
 
 ThermalStatus = log.DeviceState.ThermalStatus
 NetworkType = log.DeviceState.NetworkType
+
 
 # Color scheme
 class Colors:
@@ -33,6 +35,7 @@ class Colors:
   METRIC_BORDER = rl.Color(255, 255, 255, 85)
   BUTTON_NORMAL = rl.Color(255, 255, 255, 255)
   BUTTON_PRESSED = rl.Color(255, 255, 255, 166)
+
 
 NETWORK_TYPES = {
   NetworkType.none: "Offline",
@@ -56,6 +59,7 @@ class MetricData:
     self.value = value
     self.color = color
 
+
 class Sidebar:
   def __init__(self):
     self._net_type = NETWORK_TYPES.get(NetworkType.none)
@@ -71,7 +75,7 @@ class Sidebar:
     self._font_regular = gui_app.font(FontWeight.NORMAL)
     self._font_bold = gui_app.font(FontWeight.SEMI_BOLD)
 
-     # Callbacks
+    # Callbacks
     self._on_settings_click: Callable | None = None
     self._on_flag_click: Callable | None = None
 
@@ -149,7 +153,6 @@ class Sidebar:
     mouse_pos = rl.get_mouse_position()
     mouse_down = rl.is_mouse_button_down(rl.MouseButton.MOUSE_BUTTON_LEFT)
 
-
     # Settings button
     settings_down = mouse_down and rl.check_collision_point_rec(mouse_pos, SETTINGS_BTN)
     tint = Colors.BUTTON_PRESSED if settings_down else Colors.BUTTON_NORMAL
@@ -199,7 +202,7 @@ class Sidebar:
 
     # Draw text
     text = f"{metric.label}\n{metric.value}"
-    text_size = rl.measure_text_ex(self._font_bold, text, 35, 0)
+    text_size = measure_text_cached(self._font_bold, text, 35)
     text_pos = rl.Vector2(
       metric_rect.x + 22 + (metric_rect.width - 22 - text_size.x) / 2,
       metric_rect.y + (metric_rect.height - text_size.y) / 2
