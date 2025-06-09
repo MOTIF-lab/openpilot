@@ -71,11 +71,15 @@ elif b"METAL" in devs:
 elif b"CUDA" in devs:
   flags = 'CUDA=1 IMAGE=0'
 elif b"GPU" in devs:
-  flags = 'GPU=1'
+ flags = 'GPU=1'
 elif b"LLVM" in devs:
   flags = 'LLVM=1 LLVMOPT=1 BEAM=0 IMAGE=0 JIT=2'
 else:
   flags = 'CPU=1 IMAGE=0 JIT=2'
+
+# iGPU flags
+if "USE_IGPU" in os.environ and os.environ["USE_IGPU"] == "1":
+  flags += ' IMAGE=0 NOLOCALS=0'
 
 # Compile small models
 for model_name in ['driving_vision', 'driving_policy', 'dmonitoring_model']:
@@ -84,7 +88,8 @@ for model_name in ['driving_vision', 'driving_policy', 'dmonitoring_model']:
 tg_dump_flags(flags, 'dmonitoringmodeld')
 
 # Compile BIG model if USB GPU is available
-if b"AMD" in devs:
+if False:
+#if b"AMD" in devs:
   flags = "AMD=1 AMD_LLVM=1 NOLOCALS=0 IMAGE=0"
   if "USBGPU" in os.environ and os.environ["USBGPU"] == "1":
     print("Building USB GPU backend")
