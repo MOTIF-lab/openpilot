@@ -10,16 +10,14 @@ authors = [
 
 dependencies = [
   # multiple users
-  "sounddevice",  # micd + soundd
-  "pyserial",     # pigeond + qcomgpsd
-  "requests",     # many one-off uses
-  "sympy",        # rednose + friends
-  "crcmod",       # cars + qcomgpsd
-  "tqdm",         # cars (fw_versions.py) on start + many one-off uses
-
+  "sounddevice", # micd + soundd
+  "pyserial", # pigeond + qcomgpsd
+  "requests", # many one-off uses
+  "sympy", # rednose + friends
+  "crcmod", # cars + qcomgpsd
+  "tqdm", # cars (fw_versions.py) on start + many one-off uses
   # hardwared
   "smbus2", # configuring amp
-
   # core
   "cffi",
   "scons",
@@ -27,7 +25,6 @@ dependencies = [
   "Cython",
   "setuptools",
   "numpy >=2.0, <2.2", # Linting issues with mypy in 2.2
-
   # body / webrtcd
   "aiohttp",
   "aiortc",
@@ -35,39 +32,34 @@ dependencies = [
   # with the latest release
   "pyopenssl < 24.3.0",
   "pyaudio",
-
   # panda
   "libusb1",
   "spidev; platform_system == 'Linux'",
-
   # modeld
   "onnx >= 1.14.0",
   "llvmlite",
-
   # logging
   "pyzmq",
   "sentry-sdk",
   "xattr", # used in place of 'os.getxattr' for macos compatibility
-
   # athena
   "PyJWT",
   "json-rpc",
   "websocket_client",
-
   # acados deps
-  "casadi >=3.6.6",  # 3.12 fixed in 3.6.6
+  "casadi >=3.6.6", # 3.12 fixed in 3.6.6
   "future-fstrings",
-
   # joystickd
   "inputs",
-
   # these should be removed
   "psutil",
   "pycryptodome", # used in updated/casync, panda, body, and a test
   "setproctitle",
-
   # logreader
   "zstandard",
+  "mcp[cli]>=1.9.4",
+  "httpx>=0.28.1",
+  "paho-mqtt>=2.1.0",
 ]
 
 [project.optional-dependencies]
@@ -235,6 +227,7 @@ lint.ignore = [
   "NPY002",  # new numpy random syntax is worse
   "UP038",   # (x, y) -> x|y for isinstance
 ]
+lint.flake8-implicit-str-concat.allow-multiline = false
 line-length = 160
 target-version ="py311"
 exclude = [
@@ -250,7 +243,6 @@ exclude = [
   "third_party",
   "*.ipynb",
 ]
-lint.flake8-implicit-str-concat.allow-multiline = false
 
 [tool.ruff.lint.flake8-tidy-imports.banned-api]
 "selfdrive".msg = "Use openpilot.selfdrive"

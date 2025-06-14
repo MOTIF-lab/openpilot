@@ -23,12 +23,21 @@ struct CustomReserved3 @0xda96579883444c35 {
 }
 
 struct CustomReserved4 @0x80ae746ee2596b11 {
+  advisoryAlertText1 @0 :Text;
+  advisoryAlertText2 @1 :Text;
 }
 
 struct CustomReserved5 @0xa5cd762cd951a455 {
+  wifiConnected @0 :Bool;
+  wifiFrequency @1 :UInt32;  # in MHz
+  wifiPhyTxRate @2 :Float32;
+  wifiPhyRxRate @3 :Float32;
+  wifiSignalStrength @4 :Int32;  # in dBm
 }
 
 struct CustomReserved6 @0xf98d843bfd7004a3 {
+  msgSize @0 :UInt32;
+  rtt @1 :UInt64;
 }
 
 struct CustomReserved7 @0xb86e6369214c01c8 {

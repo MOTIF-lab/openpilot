@@ -370,6 +370,12 @@ def invalid_lkas_setting_alert(CP: car.CarParams, CS: car.CarState, sm: messagin
   return NormalPermanentAlert("Invalid LKAS setting", text)
 
 
+def get_advisory_alert(CP: car.CarParams, CS: car.CarState, sm: messaging.SubMaster, metric: bool, soft_disable_time: int, personality) -> Alert:
+  alert_data = sm['customReserved4']
+  print(alert_data)
+  return NormalPermanentAlert(alert_data.advisoryAlertText1, alert_data.advisoryAlertText2, duration=5)
+
+
 EVENTS: dict[int, dict[str, Alert | AlertCallbackType]] = {
   # ********** events with no alerts **********
 
@@ -994,6 +1000,10 @@ EVENTS: dict[int, dict[str, Alert | AlertCallbackType]] = {
   EventName.userFlag: {
     ET.PERMANENT: NormalPermanentAlert("Bookmark Saved", duration=1.5),
   },
+
+  EventName.advisory: {
+    ET.PERMANENT: get_advisory_alert
+  }
 }
 
 

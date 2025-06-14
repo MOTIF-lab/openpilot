@@ -77,7 +77,7 @@ class SelfdriveD:
     self.sm = messaging.SubMaster(['deviceState', 'pandaStates', 'peripheralState', 'modelV2', 'liveCalibration',
                                    'carOutput', 'driverMonitoringState', 'longitudinalPlan', 'livePose', 'liveDelay',
                                    'managerState', 'liveParameters', 'radarState', 'liveTorqueParameters',
-                                   'controlsState', 'carControl', 'driverAssistance', 'alertDebug', 'userFlag'] + \
+                                   'controlsState', 'carControl', 'driverAssistance', 'alertDebug', 'userFlag', 'customReserved4'] + \
                                    self.camera_packets + self.sensor_packets + self.gps_packets,
                                   ignore_alive=ignore, ignore_avg_freq=ignore,
                                   ignore_valid=ignore, frequency=int(1/DT_CTRL))
@@ -163,6 +163,9 @@ class SelfdriveD:
     # Check for user flag (bookmark) press
     if self.sm.updated['userFlag']:
       self.events.add(EventName.userFlag)
+
+    if self.sm.updated['customReserved4']:
+      self.events.add(EventName.advisory)
 
     # Don't add any more events while in dashcam mode
     if self.CP.passive:
