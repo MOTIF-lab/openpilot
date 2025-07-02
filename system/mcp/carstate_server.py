@@ -11,7 +11,7 @@ import uvicorn
 
 # Initialize FastMCP server
 mcp = FastMCP("carState")
-sm = messaging.SubMaster(['carState'])
+sm = messaging.SubMaster(['carState', 'modelV2'])
 
 @mcp.tool()
 async def get_car_state() -> Any:
@@ -23,6 +23,18 @@ async def get_car_state() -> Any:
 
     # Return the latest carState data
     return sm['carState'].to_dict()
+
+@mcp.tool()
+async def get_vision_data() -> Any:
+    """
+    Get the current vision data.
+    """
+    # Wait for the latest modelV2 message
+    sm.update(100)
+
+    # Return the latest modelV2 data
+    return sm['modelV2'].to_dict()
+
 
 def create_starlette_app(mcp_server: Server, *, debug: bool = False) -> Starlette:
     """Create a Starlette application that can server the provied mcp server with SSE."""
