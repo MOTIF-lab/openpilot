@@ -1,5 +1,5 @@
-import abc
 import atexit
+import cffi
 import os
 import time
 import pyray as rl
@@ -15,7 +15,7 @@ FPS_LOG_INTERVAL = 5  # Seconds between logging FPS drops
 FPS_DROP_THRESHOLD = 0.9  # FPS drop threshold for triggering a warning
 FPS_CRITICAL_THRESHOLD = 0.5  # Critical threshold for triggering strict actions
 
-ENABLE_VSYNC = os.getenv("ENABLE_VSYNC") == "1"
+ENABLE_VSYNC = os.getenv("ENABLE_VSYNC", "1") == "1"
 SHOW_FPS = os.getenv("SHOW_FPS") == '1'
 STRICT_MODE = os.getenv("STRICT_MODE") == '1'
 SCALE = float(os.getenv("SCALE", "1.0"))
@@ -25,35 +25,6 @@ DEFAULT_TEXT_COLOR = rl.WHITE
 
 ASSETS_DIR = files("openpilot.selfdrive").joinpath("assets")
 FONT_DIR = ASSETS_DIR.joinpath("fonts")
-
-
-class Widget(abc.ABC):
-  def __init__(self):
-    self._is_pressed = False
-
-  def render(self, rect: rl.Rectangle) -> bool | int | None:
-    ret = self._render(rect)
-
-    # Keep track of whether mouse down started within the widget's rectangle
-    mouse_pos = rl.get_mouse_position()
-    if rl.is_mouse_button_pressed(rl.MouseButton.MOUSE_BUTTON_LEFT):
-      if rl.check_collision_point_rec(mouse_pos, rect):
-        self._is_pressed = True
-
-    if rl.is_mouse_button_released(rl.MouseButton.MOUSE_BUTTON_LEFT):
-      if self._is_pressed and rl.check_collision_point_rec(mouse_pos, rect):
-        self._handle_mouse_release(mouse_pos)
-      self._is_pressed = False
-
-    return ret
-
-  @abc.abstractmethod
-  def _render(self, rect: rl.Rectangle) -> bool | int | None:
-    """Render the widget within the given rectangle."""
-
-  def _handle_mouse_release(self, mouse_pos: rl.Vector2) -> bool:
-    """Handle mouse release events, if applicable."""
-    return False
 
 
 class FontWeight(IntEnum):
@@ -199,9 +170,11 @@ class GuiApplication:
           else:
             raise Exception
 
-          if result >= 0 and self._modal_overlay.callback is not None:
+          if result >= 0:
             # Execute callback with the result and clear the overlay
-            self._modal_overlay.callback(result)
+            if self._modal_overlay.callback is not None:
+              self._modal_overlay.callback(result)
+
             self._modal_overlay = ModalOverlay()
         else:
           yield
@@ -252,7 +225,7 @@ class GuiApplication:
     for layout in KEYBOARD_LAYOUTS.values():
       all_chars.update(key for row in layout for key in row)
     all_chars = "".join(all_chars)
-    all_chars += "-✓"
+    all_chars += "–✓°"
 
     codepoint_count = rl.ffi.new("int *", 1)
     codepoints = rl.load_codepoints(all_chars, codepoint_count)
@@ -274,12 +247,29 @@ class GuiApplication:
     rl.gui_set_style(rl.GuiControl.DEFAULT, rl.GuiControlProperty.BASE_COLOR_NORMAL, rl.color_to_int(rl.Color(50, 50, 50, 255)))
 
   def _set_log_callback(self):
+    ffi_libc = cffi.FFI()
+    ffi_libc.cdef("""
+      int vasprintf(char **strp, const char *fmt, void *ap);
+      void free(void *ptr);
+    """)
+    libc = ffi_libc.dlopen(None)
+
     @rl.ffi.callback("void(int, char *, void *)")
     def trace_log_callback(log_level, text, args):
       try:
-        text_str = rl.ffi.string(text).decode('utf-8')
-      except (TypeError, UnicodeDecodeError):
-        text_str = str(text)
+        text_addr = int(rl.ffi.cast("uintptr_t", text))
+        args_addr = int(rl.ffi.cast("uintptr_t", args))
+        text_libc = ffi_libc.cast("char *", text_addr)
+        args_libc = ffi_libc.cast("void *", args_addr)
+
+        out = ffi_libc.new("char **")
+        if libc.vasprintf(out, text_libc, args_libc) >= 0 and out[0] != ffi_libc.NULL:
+          text_str = ffi_libc.string(out[0]).decode("utf-8", "replace")
+          libc.free(out[0])
+        else:
+          text_str = rl.ffi.string(text).decode("utf-8", "replace")
+      except Exception as e:
+        text_str = f"[Log decode error: {e}]"
 
       if log_level == rl.TraceLogLevel.LOG_ERROR:
         cloudlog.error(f"raylib: {text_str}")
