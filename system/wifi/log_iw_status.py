@@ -42,7 +42,7 @@ def parse_iw_status(iw_output: str) -> Dict[str, Any]:
         elif 'SSID:' in line:
             status['ssid'] = line.split('SSID:')[1].strip()
         elif 'freq:' in line:
-            status['frequency'] = int(line.split('freq:')[1].strip())
+            status['frequency'] = int(line.split('freq:')[1].strip().split('.')[0])
         elif 'signal:' in line:
             match = re.search(r'signal: (-?\d+) dBm', line)
             if match:
@@ -79,7 +79,7 @@ def log_iw_status(log_path: Path, interval: int = 60, iface: str = 'wlan0'):
                 timestamp = datetime.now().isoformat()
                 log_entry = {'timestamp': timestamp, 'status': status}
                 dat.customReserved5.wifiConnected = status.get('connected', False)
-                dat.customReserved5.wifiFrequency = status.get('frequency', '')
+                dat.customReserved5.wifiFrequency = status.get('frequency', 0)
                 dat.customReserved5.wifiPhyTxRate = status.get('tx_bitrate', {}).get('value', 0.0)
                 dat.customReserved5.wifiPhyRxRate = status.get('rx_bitrate', {}).get('value', 0.0)
                 dat.customReserved5.wifiSignalStrength = status.get('signal', 0)
@@ -95,6 +95,6 @@ def main():
     logging.basicConfig(level=logging.INFO)
     log_path = Path("/home/linux/.log/wifi")
     log_path.mkdir(parents=True, exist_ok=True)
-    log_iw_status(log_path, interval=30, iface='wlp5s0')
+    log_iw_status(log_path, interval=1, iface='wlp4s0')
 if __name__ == "__main__":
     main()

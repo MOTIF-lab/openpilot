@@ -37,7 +37,7 @@ struct CustomReserved5 @0xa5cd762cd951a455 {
 
 struct CustomReserved6 @0xf98d843bfd7004a3 {
   msgSize @0 :UInt32;
-  rtt @1 :UInt64;
+  rtt @1 :Float32;
 }
 
 struct CustomReserved7 @0xb86e6369214c01c8 {
