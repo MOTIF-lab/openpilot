@@ -40,10 +40,34 @@ struct CustomReserved6 @0xf98d843bfd7004a3 {
   rtt @1 :Float32;
 }
 
+# GenAISetSpeed
 struct CustomReserved7 @0xb86e6369214c01c8 {
+  desiredSpeedMS @0 :Float32;
+  confidence      @1 :Float32;
+  rationale       @2 :Text;
 }
 
+# GenAI Command
 struct CustomReserved8 @0xf416ec09499d9d19 {
+  maneuver   @0 :Maneuver;
+  timestamp  @1 :UInt64;
+  union {
+    setSpeed @2 :GenAISetSpeed;
+  }
+  ttlMs      @3 :UInt16;
+
+  enum Maneuver {
+    NONE @0;
+    SET_SPEED @1;
+    STOP @2;
+    RESUME @3;
+    OVERTAKE @4;
+    CHANGE_LANE_LEFT @5;
+    CHANGE_LANE_RIGHT @6;
+    EXIT_ROADWAY @7;
+    ENTER_ROADWAY @8;
+    PARK @9;
+  }
 }
 
 struct CustomReserved9 @0xa1680744031fdb2d {
